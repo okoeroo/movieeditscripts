@@ -22,18 +22,21 @@ fademagic() {
 
     if [ $FADE_IN_FRAMECOUNT -eq 0 ] && [ $FADE_OUT_FRAMECOUNT -ne 0 ]; then
         ffmpeg \
+            -y \
             -i "${CLIP_IN_FILE}" \
             -filter:v "fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
             -c:v libx264 -crf 22 -preset veryfast -c:a copy \
             "${CLIP_OUT_FILE}"
     elif [ $FADE_IN_FRAMECOUNT -ne 0 ] && [ $FADE_OUT_FRAMECOUNT -eq 0 ]; then
         ffmpeg \
+            -y \
             -i "${CLIP_IN_FILE}" \
             -filter:v "fade=in:0:$FADEFRAMECOUNT" \
             -c:v libx264 -crf 22 -preset veryfast -c:a copy \
             "${CLIP_OUT_FILE}"
     else
         ffmpeg \
+            -y \
             -i "${CLIP_IN_FILE}" \
             -filter:v "fade=in:0:$FADEFRAMECOUNT,fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
             -c:v libx264 -crf 22 -preset veryfast -c:a copy \
@@ -41,6 +44,44 @@ fademagic() {
     fi
 }
 
+
+concatclips() {
+    TMPFILE="/tmp/movie_magic.tmp.list.tmp"
+    CNT=0
+    for var in "$@"; do
+        CNT=$(($CNT+1))
+        echo "$CNT / $#: $var"
+
+        INPUT="$var"
+        OUTPUT="/tmp/tmp.$CNT.tmp.mp4"
+        echo "file ${OUTPUT}" >> "$TMPFILE"
+
+        if [ $CNT -eq 1 ]; then
+            # First video config: NO fade in, WITH fade out
+            echo "First vid"
+            fademagic "$INPUT" "$OUTPUT"  0 $FADEFRAMECOUNT
+        elif [ $CNT -eq $# ]; then
+            # Last video config: WITH fade in, WITH fade out
+            echo "Last vid"
+            fademagic "$INPUT" "$OUTPUT"  $FADEFRAMECOUNT $FADEFRAMECOUNT
+        else
+            # All intermediate video config: WITH fade in, WITH fade out
+            echo "Intermediate"
+            fademagic "$INPUT" "$OUTPUT"  $FADEFRAMECOUNT $FADEFRAMECOUNT
+        fi
+    done
+
+    # Concat clips
+    ffmpeg -y -f concat -i "$TMPFILE" -c copy final.mp4
+
+    cat "$TMPFILE"
+    rm "$TMPFILE"
+}
+
+concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+
+
+exit 0
 
 fademagic "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "tmp.mp4" 0 $FADEFRAMECOUNT
 echo "file tmp.mp4" >> tmp.list.tmp
