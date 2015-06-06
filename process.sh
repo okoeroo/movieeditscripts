@@ -20,11 +20,25 @@ fademagic() {
 
     FRAMECOUNT=$(getframe "${CLIP_IN_FILE}")
 
-    ffmpeg \
-        -i "${CLIP_IN_FILE}" \
-        -filter:v "fade=in:0:$FADEFRAMECOUNT,fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
-        -c:v libx264 -crf 22 -preset veryfast -c:a copy \
-        "${CLIP_OUT_FILE}"
+    if [ $FADE_IN_FRAMECOUNT -eq 0 ] && [ $FADE_OUT_FRAMECOUNT -ne 0 ]; then
+        ffmpeg \
+            -i "${CLIP_IN_FILE}" \
+            -filter:v "fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
+            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
+            "${CLIP_OUT_FILE}"
+    elif [ $FADE_IN_FRAMECOUNT -ne 0 ] && [ $FADE_OUT_FRAMECOUNT -eq 0 ]; then
+        ffmpeg \
+            -i "${CLIP_IN_FILE}" \
+            -filter:v "fade=in:0:$FADEFRAMECOUNT" \
+            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
+            "${CLIP_OUT_FILE}"
+    else
+        ffmpeg \
+            -i "${CLIP_IN_FILE}" \
+            -filter:v "fade=in:0:$FADEFRAMECOUNT,fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
+            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
+            "${CLIP_OUT_FILE}"
+    fi
 }
 
 
