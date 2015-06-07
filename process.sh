@@ -12,13 +12,8 @@ mute() { ### UNUSED
 
 getframe() {
     FILE="$1"
-    #FRAMECOUNT=$(ffmpeg -i "${FILE}" -vcodec copy -acodec copy -f null /dev/null 2>&1 | grep 'frame=' |  tr -s ' ' | cut -f 2 -d ' ')
 
-    # Get the frame count through a regex
-    string=$(ffmpeg -i "${FILE}" -vcodec copy -acodec copy -f null /dev/null 2>&1 | grep 'frame=');
-    [[ $string =~ [^0-9]*([0-9]+)[^0-9]+ ]];
-    FRAMECOUNT="${BASH_REMATCH[1]}"
-
+    FRAMECOUNT=$(ffprobe  -select_streams v -show_streams  -i "${FILE}" | grep nb_frames | sed -e 's/nb_frames=//')
     echo $FRAMECOUNT
 }
 
@@ -58,7 +53,7 @@ fademagic() {
     fi
 
 
-    ffmpeg -y ${AUDIO_SETTING_PRE} -i "${CLIP_IN_FILE}" ${FILTER} -c:v libx264 -crf 22 -preset veryfast ${AUDIO_SETTING_POST} "${CLIP_OUT_FILE}"
+    ffmpeg -y ${AUDIO_SETTING_PRE} -i "${CLIP_IN_FILE}" ${FILTER} -c:v libx264 -preset veryfast ${AUDIO_SETTING_POST} "${CLIP_OUT_FILE}"
 }
 
 
@@ -108,9 +103,34 @@ concatclips() {
 }
 
 # describe videos here
-concatclips "final4.mp4" \
+concatclips "./publishable/NCSC One - Jaya Baloo - Crypto is dead, long live crypto.mp4" \
     "materials/CISO title clips/NCSC One 2015 - Jaya Baloo - Crypto is dead, long live crypto.mp4" \
     "raw/NCSC One - Jaya Baloo - Crypto is dead, long live crypto.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+exit 0
+concatclips "./publishable/CISO - Jaya Baloo en Bouke van Leathem over cybersecurity en ethisch hacken.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4" \
+    "raw/Jaya Baloo en Bouke van Leathem over cybersecurity en ethisch hacken bij KPN-dtNBgg6Gp1A.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+
+concatclips "./publishable/CISO - Marc van Kasteren over cyber security policy.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4" \
+    "raw/Marc van Kasteren over cyber security policy bij KPN-uQ7JZ8pDoSA.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+
+concatclips "./publishable/CISO - Rence Damming over het werk van Privacy Officer.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4" \
+    "raw/Rence Damming over het werk van Privacy Officer bij KPN-y5ahGlGzt0U.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+
+concatclips "./publishable/CISO - Rob Kuiters over digitaal forensisch onderzoek.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4" \
+    "raw/Rob Kuiters over digitaal forensisch onderzoek bij KPN-9E9vmPUUMEs.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+
+concatclips "./publishable/CISO - Oscar Koeroo en Eduard Hoekx demonstreren de black phone.mp4" \
+    "materials/CISO_infinity_logo_1280x720.noaudio.mp4" \
+    "raw/Oscar Koeroo en Eduard Hoekx demonstreren de black phone-7d8vtJe11eg.mp4" \
     "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
 
 
