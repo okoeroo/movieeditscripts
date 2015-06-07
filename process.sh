@@ -5,6 +5,11 @@
 
 FADEFRAMECOUNT=12
 
+mute() { ### UNUSED
+    ffmpeg -f lavfi -i aevalsrc=0 -i video.mov -shortest -c:v copy -c:a aac \
+    -strict experimental -map 0:a -map 1:v output.mov
+}
+
 getframe() {
     FILE="$1"
     FRAMECOUNT=$(ffmpeg -i "${FILE}" -vcodec copy -acodec copy -f null /dev/null 2>&1 | grep 'frame=' |  tr -s ' ' | cut -f 2 -d ' ')
@@ -85,7 +90,7 @@ concatclips() {
 }
 
 concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
-#concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
+concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
 
 
 exit 0
