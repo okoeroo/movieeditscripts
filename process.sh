@@ -23,9 +23,12 @@ fademagic() {
     if [ $FADE_IN_FRAMECOUNT -eq 0 ] && [ $FADE_OUT_FRAMECOUNT -ne 0 ]; then
         ffmpeg \
             -y \
+            -f lavfi -i aevalsrc=0 -c:a aac \
             -i "${CLIP_IN_FILE}" \
             -filter:v "fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
-            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
+            -c:v libx264 -crf 22 -preset veryfast -c:a aac \
+            -shortest \
+            -strict -2 \
             "${CLIP_OUT_FILE}"
     elif [ $FADE_IN_FRAMECOUNT -ne 0 ] && [ $FADE_OUT_FRAMECOUNT -eq 0 ]; then
         ffmpeg \
@@ -72,13 +75,14 @@ concatclips() {
     done
 
     # Concat clips
-    ffmpeg -y -f concat -i "$TMPFILE" -c copy final.mp4
+    ffmpeg -y -f concat -i "$TMPFILE" -acodec copy -c copy final.mp4
 
     cat "$TMPFILE"
     rm "$TMPFILE"
 }
 
-concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+#concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
 
 
 exit 0
