@@ -83,13 +83,20 @@ concatclips() {
     done
 
     # Concat clips
-    ffmpeg -y -f concat -i "$TMPFILE" -acodec copy -c copy final.mp4
+    FINAL="final.mp4"
+    ffmpeg -y -f concat -i "$TMPFILE" -acodec copy -c copy "${FINAL}"
 
-    cat "$TMPFILE"
+    # CLEAN UP
+    echo
+    echo "Cleaning up"
+    cat "$TMPFILE" | while read LINE; do FILE=$(echo "$LINE" | cut -d" " -f 2-); rm "$FILE"; done
     rm "$TMPFILE"
+
+    echo
+    echo "Final file: ${FINAL}"
 }
 
-concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+#concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
 concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
 
 
