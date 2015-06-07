@@ -11,6 +11,11 @@ getframe() {
     echo $FRAMECOUNT
 }
 
+hasaudio() {
+    FILE="$1"
+    RC=$(ffprobe  -i "$FILE" 2>&1 | grep Stream | grep Audio | wc -l | tr -d ' ')
+    return $RC
+}
 
 fademagic() {
     CLIP_IN_FILE="$1"
@@ -20,36 +25,34 @@ fademagic() {
 
     FRAMECOUNT=$(getframe "${CLIP_IN_FILE}")
 
-    if [ $FADE_IN_FRAMECOUNT -eq 0 ] && [ $FADE_OUT_FRAMECOUNT -ne 0 ]; then
-        ffmpeg \
-            -y \
-            -f lavfi -i aevalsrc=0 -c:a aac \
-            -i "${CLIP_IN_FILE}" \
-            -filter:v "fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
-            -c:v libx264 -crf 22 -preset veryfast -c:a aac \
-            -shortest \
-            -strict -2 \
-            "${CLIP_OUT_FILE}"
-    elif [ $FADE_IN_FRAMECOUNT -ne 0 ] && [ $FADE_OUT_FRAMECOUNT -eq 0 ]; then
-        ffmpeg \
-            -y \
-            -i "${CLIP_IN_FILE}" \
-            -filter:v "fade=in:0:$FADEFRAMECOUNT" \
-            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
-            "${CLIP_OUT_FILE}"
+    # Has audio? 1 or 0 returned
+    hasaudio "$CLIP_IN_FILE"
+    HAS_AUDIO="$?"
+
+    if [ $HAS_AUDIO -eq 0 ]; then
+        AUDIO_SETTING_PRE="-f lavfi -i aevalsrc=0 -c:a aac"
+        AUDIO_SETTING_POST="-shortest -strict -2"
     else
-        ffmpeg \
-            -y \
-            -i "${CLIP_IN_FILE}" \
-            -filter:v "fade=in:0:$FADEFRAMECOUNT,fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT" \
-            -c:v libx264 -crf 22 -preset veryfast -c:a copy \
-            "${CLIP_OUT_FILE}"
+        AUDIO_SETTING_POST="-c:a copy"
     fi
+
+    # Fade in an fade out based on list index of the input files to concatenate
+    if [ $FADE_IN_FRAMECOUNT -eq 0 ] && [ $FADE_OUT_FRAMECOUNT -ne 0 ]; then
+        FILTER="-filter:v fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT"
+    elif [ $FADE_IN_FRAMECOUNT -ne 0 ] && [ $FADE_OUT_FRAMECOUNT -eq 0 ]; then
+        FILTER="-filter:v fade=in:0:$FADEFRAMECOUNT"
+    else
+        FILTER="-filter:v fade=in:0:$FADEFRAMECOUNT,fade=out:$(($FRAMECOUNT-$FADEFRAMECOUNT)):$FADEFRAMECOUNT"
+    fi
+
+
+    ffmpeg -y ${AUDIO_SETTING_PRE} -i "${CLIP_IN_FILE}" ${FILTER} -c:v libx264 -crf 22 -preset veryfast ${AUDIO_SETTING_POST} "${CLIP_OUT_FILE}"
 }
 
 
 concatclips() {
     TMPFILE="/tmp/movie_magic.tmp.list.tmp"
+    rm "${TMPFILE}"
     CNT=0
     for var in "$@"; do
         CNT=$(($CNT+1))
@@ -81,8 +84,8 @@ concatclips() {
     rm "$TMPFILE"
 }
 
-#concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
-concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
+concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4" "materials/CISO_infinity_logo_1280x720.noaudio.mp4"
+#concatclips "materials/CISO_infinity_logo_1280x720.noaudio.mp4" "De Kraaien - 1&2-f_iM-CusiZU.mp4"
 
 
 exit 0
